@@ -1,15 +1,16 @@
 {
   "name": "zero-statistic",
   "version": "0.0.1",
-  "description" : "zero module",
-  "zero" : {
-    "dependencies" : {
-      "request":"zero-request^0.0.1",
-      "model":"zero-model^0.0.1",
-      "bus":"zero-bus^0.0.1",
-      "respond":"zero-respond^0.0.1",
-      "rest":"zero-rest^0.0.1"
-    }
+  "description": "zero module",
+  "zero": {
+    "dependencies": {
+      "request": "^0.0.1",
+      "model": "^0.0.1",
+      "bus": "^0.0.1",
+      "respond": "^0.0.1",
+      "rest": "^0.0.1"
+    },
+    "name": "statistic"
   },
-  "author" : "jiamiu"
+  "author": "jiamiu"
 }
