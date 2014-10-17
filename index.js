@@ -1,60 +1,80 @@
-var config = require('./config')
+var _ = require('lodash'),
+  moment = moment = require('moment')
 
-
-var userModule = {
-  models : require('./models'),
-  listen : require('./listen')(config),
-  //this will allow app global config overwrite
-  config : config,
-  route : {
-    "/user/count" : function( req, res, next){
-      userModule.dep.model.models['user'].count().then(function(total){
-        res.json({count:total})
-      })
-    },
-    "*" : {
-      "function" : function initSession(req,res,next){
-        //TODO only for dev
-        if( !req.session.user ){
-          userModule.dep.model.models['user'].count().then(function(total){
-            var skip = parseInt( total * Math.random())
-            userModule.dep.model.models['user'].find({limit:1,skip:skip}).then(function(users){
-//              console.log("====================setting session user===========", users[0].name)
-//              req.session.user = users[0]
-              next()
-            }).catch(function(err){
-              ZERO.error(err)
-              next()
-            })
-          })
-        }else{
-          next()
-        }
-
-
-
-
-        return
-
-//        if( req.session.user ){
-//          next()
-//        }else{
-//          //TODO only for dev
-//          userModule.dep.model.models['user'].find({limit:1}).then(function(users){
-//            req.session.user = users[0]
-//            next()
-//          }).catch(function(err){
-//            ZERO.error(err)
-//            next()
-//          })
-//        }
-
-      },
-      "order" : {first:true}
+module.exports ={
+  models : require("./models"),
+  listen : {},
+  route : {},
+  strategy : require('./strategy'),
+  expand : function(module){
+    var root = this
+    if( module.statistics && module.statistics.strategy ){
+      _.merge( root.strategy, module.statistics.strategy)
     }
 
+    if( module.statistics && module.statistics.log ){
+      _.forEach( module.statistics.log,function( handler, event){
+        if( /^[GPD\/]/.test(event) ){
+          root.route[event] ? root.route[event].push(handler) : (root.route[event]=[handler])
+        }else{
+          root.listen[event] ? root.listen[event].push(handler) : (root.listen[event]=[handler])
+        }
+      })
+    }
+  },
+  bootstrap : {
+    "function" : function(){
+      this.listen = this.standardListeners( this.listen )
+      this.route = this.standardRoutes( this.route )
+      this.dep.bus.expand(this)
+      this.dep.request.expand(this)
+    },
+    "order" : {"before":"request.bootstrap"}
+  },
+  standardListeners : function( listen ){
+    var root = this
+    return _.mapValues( listen, function( handlers, event ){
+      return function(){
+        var bus = this
+        var argv = _.toArray(arguments).slice(0)
+        _.forEach(handlers, function(handler){
+          if(_.isString(handler)&&root.strategy.listener[handler]){
+            //use predefined handler
+            root.strategy.listener[handler].apply(bus,[event].concat(argv))
+          }else{
+            ZERO.warn('statistic','unknown statistic handler')
+          }
+        })
+      }
+    })
+  },
+  standardRoutes : function( listen ){
+    var root = this
+    return _.mapValues( listen, function( handlers, url ){
+      return {
+        "function":function(req, res, next ){
+          ZERO.mlog("statistic","log",url)
+
+          applyNext(0)
+
+          function applyNext( n ){
+            if( !handlers[n] ){
+              return next()
+            }
+
+            var applyResult = root.strategy.route[handlers[n]].call( root, url, req )
+            if( applyResult && applyResult.then ){
+              applyResult.fin(function(){
+                applyNext(++n)
+              })
+            }else{
+              applyNext(++n)
+            }
+          }
+
+        },
+        "order" : {first:true}
+      }
+    })
   }
 }
-
-module.exports = userModule
-
