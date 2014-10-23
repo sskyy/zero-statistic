@@ -38,9 +38,14 @@ module.exports ={
         var bus = this
         var argv = _.toArray(arguments).slice(0)
         _.forEach(handlers, function(handler){
-          if(_.isString(handler)&&root.strategy.listener[handler]){
+          if(_.isString(handler)&&root.strategy.listener[handler]) {
             //use predefined handler
-            root.strategy.listener[handler].apply(bus,[event].concat(argv))
+            root.strategy.listener[handler].apply(bus, [event].concat(argv))
+
+          }else if(_.isObject( handler) && root.strategy.listener[handler.strategy]){
+            //use strategy function as a constructor and then apply
+            root.strategy.listener[handler.strategy].apply(bus,handler.argv||[]).apply(bus, [event].concat(argv))
+
           }else{
             ZERO.warn('statistic','unknown statistic handler')
           }
@@ -64,7 +69,7 @@ module.exports ={
 
             var applyResult = root.strategy.route[handlers[n]].call( root, url, req )
             if( applyResult && applyResult.then ){
-              applyResult.fin(function(){
+              applyResult.finally(function(){
                 applyNext(++n)
               })
             }else{

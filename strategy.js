@@ -1,6 +1,8 @@
+var _ = require('lodash')
+
 module.exports = {
   route : {
-    daily : function(url){
+    daily : function(url, req){
       var module = this,
         key = makeKey(url),
         type = makeType(url)
@@ -21,7 +23,23 @@ module.exports = {
     }
   },
   listener : {
-    feed : function(){
+    feed : function( nodeType ){
+      return function( event, modelEvent, modelEventArgs){
+        var bus = this
+        if( modelEvent == nodeType +".findOne" ){
+          var node = bus.data( nodeType+".findOne"),
+            originStatistic,updateObj
+
+          if( node ){
+              originStatistic = _.cloneDeep(node.statistic) || { view : 0}
+              updateObj = {statistic : _.extend( originStatistic,{view:originStatistic.view+1})}
+            //this is not important, so we do not return the promise
+            console.log(  nodeType+".update", {id:modelEventArgs.id}, updateObj )
+            bus.fire( nodeType+".update", {id:modelEventArgs.id}, updateObj )
+          }
+
+        }
+      }
     }
   }
 }
