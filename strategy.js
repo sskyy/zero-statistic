@@ -1,13 +1,15 @@
-var _ = require('lodash')
+var _ = require('lodash'),
+  moment = require('moment')
+
 
 module.exports = {
   route : {
     daily : function(url, req){
       var module = this,
-        key = makeKey(url),
+         key = moment(new Date()).format('YYYY-MM-DD'),
         type = makeType(url)
 
-      ZERO.mlog("statistic","daily log",url)
+      ZERO.mlog("statistic","daily log")
       return module.dep.model.models['statistic'].findOne({key:key,type:type}).then(function( record ){
         return record ?  module.dep.model.models['statistic'].update({key:key,type:type},{value:record.value+1}) :
           module.dep.model.models['statistic'].create({key:key,type:type,value:1})

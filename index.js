@@ -34,7 +34,7 @@ module.exports ={
   standardListeners : function( listen ){
     var root = this
     return _.mapValues( listen, function( handlers, event ){
-      return function(){
+      return function callStatisticHandler(){
         var bus = this
         var argv = _.toArray(arguments).slice(0)
         _.forEach(handlers, function(handler){
