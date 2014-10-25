@@ -1,5 +1,6 @@
 var _ = require('lodash'),
-  moment = moment = require('moment')
+  moment = require('moment'),
+  Promise = require('bluebird')
 
 module.exports ={
   models : require("./models"),
@@ -37,19 +38,19 @@ module.exports ={
       return function callStatisticHandler(){
         var bus = this
         var argv = _.toArray(arguments).slice(0)
-        _.forEach(handlers, function(handler){
-          if(_.isString(handler)&&root.strategy.listener[handler]) {
-            //use predefined handler
-            root.strategy.listener[handler].apply(bus, [event].concat(argv))
+        return Promise.all(_.map(handlers, function(handler){
+            if(_.isString(handler)&&root.strategy.listener[handler]) {
+              //use predefined handler
+              return root.strategy.listener[handler].apply(bus, [event].concat(argv))
 
-          }else if(_.isObject( handler) && root.strategy.listener[handler.strategy]){
-            //use strategy function as a constructor and then apply
-            root.strategy.listener[handler.strategy].apply(bus,handler.argv||[]).apply(bus, [event].concat(argv))
+            }else if(_.isObject( handler) && root.strategy.listener[handler.strategy]){
+              //use strategy function as a constructor and then apply
+              return root.strategy.listener[handler.strategy].apply(bus,handler.argv||[]).apply(bus, [event].concat(argv))
 
-          }else{
-            ZERO.warn('statistic','unknown statistic handler')
-          }
-        })
+            }else{
+              ZERO.warn('statistic','unknown statistic handler')
+            }
+          }))
       }
     })
   },

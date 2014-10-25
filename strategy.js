@@ -35,9 +35,8 @@ module.exports = {
           if( node ){
               originStatistic = _.cloneDeep(node.statistic) || { view : 0}
               updateObj = {statistic : _.extend( originStatistic,{view:originStatistic.view+1})}
-            //this is not important, so we do not return the promise
             console.log(  nodeType+".update", {id:modelEventArgs.id}, updateObj )
-            bus.fire( nodeType+".update", {id:modelEventArgs.id}, updateObj )
+            return bus.fire( nodeType+".update", {id:modelEventArgs.id}, updateObj )
           }
 
         }
