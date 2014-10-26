@@ -9,7 +9,6 @@ module.exports = {
          key = moment(new Date()).format('YYYY-MM-DD'),
         type = makeType(url)
 
-      ZERO.mlog("statistic","daily log")
       return module.dep.model.models['statistic'].findOne({key:key,type:type}).then(function( record ){
         return record ?  module.dep.model.models['statistic'].update({key:key,type:type},{value:record.value+1}) :
           module.dep.model.models['statistic'].create({key:key,type:type,value:1})
@@ -35,7 +34,6 @@ module.exports = {
           if( node ){
               originStatistic = _.cloneDeep(node.statistic) || { view : 0}
               updateObj = {statistic : _.extend( originStatistic,{view:originStatistic.view+1})}
-            console.log(  nodeType+".update", {id:modelEventArgs.id}, updateObj )
             return bus.fire( nodeType+".update", {id:modelEventArgs.id}, updateObj )
           }
 

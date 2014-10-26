@@ -48,7 +48,7 @@ module.exports ={
               return root.strategy.listener[handler.strategy].apply(bus,handler.argv||[]).apply(bus, [event].concat(argv))
 
             }else{
-              ZERO.warn('statistic','unknown statistic handler')
+              root.dep.logger.warn('statistic','unknown statistic handler')
             }
           }))
       }
@@ -59,7 +59,7 @@ module.exports ={
     return _.mapValues( listen, function( handlers, url ){
       return {
         "function":function(req, res, next ){
-          ZERO.mlog("statistic","log",url)
+          root.dep.logger.log("statistic","log",url)
 
           applyNext(0)
 
