@@ -25,15 +25,15 @@ module.exports = {
   },
   listener : {
     feed : function( nodeType ){
-      return function( event, modelEvent, modelEventArgs){
+      console.log("excuted")
+      return function( event, eventResult, modelEvent, modelEventArgs){
+
         var bus = this
         if( modelEvent == nodeType +".findOne" ){
-          var node = bus.data( nodeType+".findOne"),
-            originStatistic,updateObj
+          var node = eventResult,updateObj
 
           if( node ){
-              originStatistic = _.cloneDeep(node.statistic) || { view : 0}
-              updateObj = {statistic : _.extend( originStatistic,{view:originStatistic.view+1})}
+              updateObj = {view : (node.view||0)+1}
             return bus.fire( nodeType+".update", {id:modelEventArgs.id}, updateObj )
           }
 
